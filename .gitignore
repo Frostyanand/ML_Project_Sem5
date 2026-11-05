@@ -1,0 +1,54 @@
+# Node / Next.js
+node_modules/
+demo_app/node_modules/
+.next/
+demo_app/.next/
+out/
+demo_app/out/
+build/
+dist/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Python
+__pycache__/
+*/__pycache__/
+*/*/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+demo_app/backend/__pycache__/
+
+# Jupyter
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# Large Model Checkpoints (> 50MB)
+*.pth
+*.ckpt
+*.h5
+*.onnx
+session3_complete.pt
+Models/
+
+# Keep essential lightweight dataset (3.8 MB)
+!data/writer_style_vectors.pt
