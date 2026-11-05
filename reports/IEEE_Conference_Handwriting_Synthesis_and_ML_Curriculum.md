@@ -1,6 +1,6 @@
 # Deep Vision Transformer Metric Learning and Style-Disentangled Kinematic Synthesis Combined with Classical Probabilistic and Sequential Machine Learning
 
-**Anurag**, *Member, IEEE*, and **Research Project Team**  
+**Anurag Anand**, **Aditi**, **Soumyadeep**, and **Vanshika**  
 *Department of Computer Science & Engineering, Advanced Machine Learning & Deep Generative Systems Laboratory*  
 *IEEE Transactions on Pattern Analysis and Machine Intelligence (TPAMI) / ICDAR Submission Draft*
 
