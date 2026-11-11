@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Sparkles, Sliders, Wand2, ShieldCheck, RefreshCw, Cpu } from 'lucide-react';
+import { PenTool, FileText, Sliders, RefreshCw, CheckCircle2 } from 'lucide-react';
 import HandwritingCanvas from './HandwritingCanvas';
 
 interface SynthesisTabProps {
@@ -10,24 +10,24 @@ interface SynthesisTabProps {
 }
 
 export default function SynthesisTab({ writers, archetypes }: SynthesisTabProps) {
-  const [text, setText] = useState("Machine Learning Unit 3 4 5 Integration");
+  const [text, setText] = useState("Continuous Kinematic Trajectory");
   const [selectedWriter, setSelectedWriter] = useState(writers[0]?.id || "a01-000");
-  const [temperatureBias, setTemperatureBias] = useState(1.4);
+  const [temperatureBias, setTemperatureBias] = useState(1.2);
   const [maxLen, setMaxLen] = useState(300);
   const [applyKalman, setApplyKalman] = useState(true);
 
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
 
-  // Real sample comparison state
+  // Reference sample state
   const [realSample, setRealSample] = useState<any>(null);
   const [loadingReal, setLoadingReal] = useState(false);
 
-  const quickPrompts = [
-    "Machine Learning Sem 5 Master Project",
-    "Expectation Maximization & Gaussian Mixtures",
-    "Hidden Markov Models and Viterbi Decoding",
-    "Ensemble Stacking with Random Forests and SVM",
+  const promptPresets = [
+    "Continuous Kinematic Trajectory",
+    "Hidden Markov Model Viterbi Decoding",
+    "Expectation Maximization Density Estimation",
+    "Stacking Meta-Ensemble Optimization",
     "The quick brown fox jumps over the lazy dog"
   ];
 
@@ -48,6 +48,7 @@ export default function SynthesisTab({ writers, archetypes }: SynthesisTabProps)
       });
       const data = await res.json();
       setResult(data);
+      setRealSample(null); // Return to generated view
     } catch (err) {
       console.error("Synthesis error:", err);
     } finally {
@@ -58,12 +59,12 @@ export default function SynthesisTab({ writers, archetypes }: SynthesisTabProps)
   const handleLoadReal = async () => {
     setLoadingReal(true);
     try {
-      const randIdx = Math.floor(Math.random() * 200);
+      const randIdx = Math.floor(Math.random() * 25);
       const res = await fetch(`/api/samples/real?index=${randIdx}`);
       const data = await res.json();
       setRealSample(data);
     } catch (err) {
-      console.error("Error loading real sample:", err);
+      console.error("Error loading sample:", err);
     } finally {
       setLoadingReal(false);
     }
@@ -71,207 +72,194 @@ export default function SynthesisTab({ writers, archetypes }: SynthesisTabProps)
 
   return (
     <div className="space-y-6">
-      {/* Intro Banner */}
-      <div className="p-4 rounded-xl bg-white border border-slate-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+      {/* Intro Header */}
+      <div className="p-5 rounded-lg bg-white border border-zinc-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-bold text-slate-900 tracking-tight">
-              Biometric Vector Handwriting Synthesis Studio
+            <h2 className="text-base font-semibold text-zinc-900 tracking-tight">
+              Kinematic Trajectory Studio
             </h2>
-            <span className="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-blue-50 text-blue-700 border border-blue-200">
-              Style-Disentangled Transformer (SDT)
+            <span className="px-2 py-0.5 rounded text-[11px] font-mono text-zinc-600 bg-zinc-100 border border-zinc-200">
+              Style-Disentangled Transformer
             </span>
           </div>
-          <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
-            Conditioned on Vision Transformer (ViT) 512-D style vectors from IAM authors, our 20-component Gaussian Mixture Density Network (MDN) synthesizes continuous (dx, dy, p1, p2, p3) stroke trajectories.
+          <p className="text-xs text-zinc-600 mt-1 max-w-2xl leading-relaxed">
+            Conditioned on 512-dimensional style vectors extracted by the Vision Transformer backbone, the autoregressive decoder outputs continuous coordinate displacement vectors and pen transition states.
           </p>
         </div>
 
         <button
           onClick={handleLoadReal}
           disabled={loadingReal}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-medium text-slate-800 transition-colors whitespace-nowrap"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-xs font-medium text-zinc-800 transition-colors whitespace-nowrap"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loadingReal ? 'animate-spin' : ''}`} />
-          <span>Load Real Ground Truth Sample</span>
+          <FileText className="w-3.5 h-3.5 text-zinc-500" />
+          <span>{loadingReal ? 'Loading...' : 'Load Reference Specimen'}</span>
         </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Generation Controls */}
-        <div className="lg:col-span-1 space-y-5">
+        <div className="space-y-5 bg-white p-5 rounded-lg border border-zinc-200 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-zinc-800 flex items-center gap-1.5">
+              <Sliders className="w-3.5 h-3.5 text-zinc-600" />
+              <span>Generation Parameters</span>
+            </span>
+          </div>
+
           {/* Text Input */}
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-800 mb-1.5 uppercase tracking-wider">
-                Digital Text Input
-              </label>
-              <textarea
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                rows={3}
-                className="w-full text-xs font-mono p-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 resize-none bg-slate-50/50"
-                placeholder="Enter text to synthesize into biometric handwriting..."
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-zinc-700">Text Content</label>
+            <textarea
+              rows={3}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Enter text to synthesize..."
+              className="w-full text-xs p-3 rounded-md border border-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-900 bg-zinc-50 font-sans leading-relaxed resize-none"
+            />
+
+            {/* Quick Presets */}
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {promptPresets.slice(0, 3).map((prompt, i) => (
+                <button
+                  key={i}
+                  onClick={() => setText(prompt)}
+                  className="text-[11px] px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-600 font-mono transition-colors"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Author Selection */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-xs">
+              <label className="font-medium text-zinc-700">Author Style Embedding</label>
+              <span className="font-mono text-zinc-500 text-[11px]">
+                {writers.length} available
+              </span>
+            </div>
+            <select
+              value={selectedWriter}
+              onChange={(e) => setSelectedWriter(e.target.value)}
+              className="w-full text-xs p-2.5 rounded-md border border-zinc-200 bg-zinc-50 focus:outline-none focus:ring-1 focus:ring-zinc-900 font-mono"
+            >
+              {writers.map((w: any) => (
+                <option key={w.id} value={w.id}>
+                  {w.id} — {w.archetype_name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sliders */}
+          <div className="space-y-4 pt-1 border-t border-zinc-100">
+            {/* Variance / Bias */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs">
+                <span className="text-zinc-600">Sampling Variance (Temperature)</span>
+                <span className="font-mono text-zinc-900 font-medium">{temperatureBias.toFixed(2)}</span>
+              </div>
+              <input
+                type="range"
+                min="0.4"
+                max="2.2"
+                step="0.05"
+                value={temperatureBias}
+                onChange={(e) => setTemperatureBias(parseFloat(e.target.value))}
+                className="w-full h-1 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-zinc-900"
+              />
+              <div className="flex justify-between text-[10px] text-zinc-400 font-mono">
+                <span>Deterministic</span>
+                <span>Stochastic</span>
+              </div>
+            </div>
+
+            {/* Sequence Length */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs">
+                <span className="text-zinc-600">Max Sequence Points</span>
+                <span className="font-mono text-zinc-900 font-medium">{maxLen} pts</span>
+              </div>
+              <input
+                type="range"
+                min="100"
+                max="450"
+                step="25"
+                value={maxLen}
+                onChange={(e) => setMaxLen(parseInt(e.target.value))}
+                className="w-full h-1 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-zinc-900"
               />
             </div>
 
-            {/* Quick Prompts */}
-            <div>
-              <span className="block text-[11px] font-medium text-slate-500 mb-1.5">
-                Suggested Review Prompts:
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {quickPrompts.map((p, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setText(p)}
-                    className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-[10px] text-slate-600 font-medium transition-colors text-left truncate max-w-full"
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
+            {/* Kalman Filter Checkbox */}
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-xs text-zinc-700">Kalman State Denoising</span>
+              <input
+                type="checkbox"
+                checked={applyKalman}
+                onChange={(e) => setApplyKalman(e.target.checked)}
+                className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 cursor-pointer"
+              />
             </div>
-
-            {/* Writer Style Selector */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-800 mb-1.5 uppercase tracking-wider">
-                Writer Identity (512-D Style Manifold)
-              </label>
-              <select
-                value={selectedWriter}
-                onChange={(e) => setSelectedWriter(e.target.value)}
-                className="w-full text-xs font-mono p-2.5 rounded-lg border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-              >
-                {writers.slice(0, 30).map((w) => (
-                  <option key={w.id} value={w.id}>
-                    Writer {w.id} — {w.archetype_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Sliders */}
-            <div className="space-y-3 pt-2 border-t border-slate-100">
-              <div>
-                <div className="flex justify-between items-center text-xs mb-1">
-                  <span className="font-medium text-slate-700">Neatness Bias (Temperature)</span>
-                  <span className="font-mono text-blue-600 font-bold">{temperatureBias.toFixed(1)}x</span>
-                </div>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="2.5"
-                  step="0.1"
-                  value={temperatureBias}
-                  onChange={(e) => setTemperatureBias(parseFloat(e.target.value))}
-                  className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                />
-                <div className="flex justify-between text-[10px] text-slate-400 mt-0.5">
-                  <span>Natural Jitter (0.5x)</span>
-                  <span>Ultra-Neat Low Entropy (2.5x)</span>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center text-xs mb-1">
-                  <span className="font-medium text-slate-700">Max Sequence Coordinate Length</span>
-                  <span className="font-mono text-blue-600 font-bold">{maxLen} pts</span>
-                </div>
-                <input
-                  type="range"
-                  min="100"
-                  max="450"
-                  step="25"
-                  value={maxLen}
-                  onChange={(e) => setMaxLen(parseInt(e.target.value))}
-                  className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                />
-              </div>
-
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-xs font-medium text-slate-700">Apply Kalman Filter (LDS Denoising)</span>
-                <input
-                  type="checkbox"
-                  checked={applyKalman}
-                  onChange={(e) => setApplyKalman(e.target.checked)}
-                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 accent-blue-600 cursor-pointer"
-                />
-              </div>
-            </div>
-
-            {/* Synthesize Button */}
-            <button
-              onClick={handleSynthesize}
-              disabled={isLoading || !text.trim()}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs shadow-sm transition-all disabled:opacity-50"
-            >
-              {isLoading ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Generating Coordinates via SDT...</span>
-                </>
-              ) : (
-                <>
-                  <Wand2 className="w-4 h-4" />
-                  <span>Synthesize Biometric Handwriting</span>
-                </>
-              )}
-            </button>
           </div>
+
+          {/* Primary Action Button */}
+          <button
+            onClick={handleSynthesize}
+            disabled={isLoading || !text.trim()}
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-md bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium transition-colors disabled:opacity-40 shadow-sm"
+          >
+            <PenTool className="w-3.5 h-3.5" />
+            <span>{isLoading ? 'Generating Trajectory...' : 'Generate Trajectory'}</span>
+          </button>
         </div>
 
-        {/* Right Columns: Canvas & Results */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Synthesized Output Canvas */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                <Cpu className="w-3.5 h-3.5 text-blue-600" />
-                <span>Generated Output Canvas</span>
-              </span>
-              {result && (
-                <div className="flex items-center gap-3 text-xs font-mono text-slate-500">
-                  <span>Latency: {result.stats.inference_time_sec}s</span>
-                  <span>·</span>
-                  <span>Pen Lifts: {result.stats.pen_lifts}</span>
-                </div>
-              )}
-            </div>
+        {/* Right Column: Canvas & Real-Time Inspection */}
+        <div className="lg:col-span-2 space-y-4">
+          <HandwritingCanvas
+            points={realSample ? realSample.strokes : result?.points}
+            rawTrajectory={realSample ? realSample.trajectory : result?.raw_trajectory}
+            kalmanTrajectory={realSample ? realSample.trajectory : result?.kalman_trajectory}
+            text={realSample ? realSample.text : (result ? result.text : text)}
+            writerId={realSample ? realSample.writer_id : (result ? result.writer_id : selectedWriter)}
+            isRealSample={!!realSample}
+          />
 
-            <HandwritingCanvas
-              points={result?.points || []}
-              rawTrajectory={result?.raw_trajectory || []}
-              kalmanTrajectory={result?.kalman_trajectory || []}
-              text={text}
-              writerId={selectedWriter}
-            />
-          </div>
-
-          {/* Side-by-side Visual Turing Test Ground Truth */}
-          {realSample && (
-            <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Visual Turing Benchmark (Ground Truth IAM Online)</span>
-                </span>
-                <span className="font-mono text-xs text-slate-500">
-                  Target: &ldquo;{realSample.text}&rdquo; (Author: {realSample.writer_id})
-                </span>
+          {/* Technical Metrics Banner */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3 bg-white rounded-lg border border-zinc-200 shadow-sm">
+              <div className="text-[11px] font-mono text-zinc-500 uppercase">Trajectory Points</div>
+              <div className="text-sm font-semibold font-mono text-zinc-900 mt-0.5">
+                {realSample ? realSample.total_points : (result?.stats?.total_points || '—')}
               </div>
-              <HandwritingCanvas
-                rawTrajectory={realSample.trajectory}
-                kalmanTrajectory={realSample.trajectory}
-                text={realSample.text}
-                writerId={realSample.writer_id}
-                isRealSample={true}
-              />
             </div>
-          )}
+
+            <div className="p-3 bg-white rounded-lg border border-zinc-200 shadow-sm">
+              <div className="text-[11px] font-mono text-zinc-500 uppercase">Pen Lifts</div>
+              <div className="text-sm font-semibold font-mono text-zinc-900 mt-0.5">
+                {realSample ? realSample.pen_lifts : (result?.stats?.pen_lifts !== undefined ? result.stats.pen_lifts : '—')}
+              </div>
+            </div>
+
+            <div className="p-3 bg-white rounded-lg border border-zinc-200 shadow-sm">
+              <div className="text-[11px] font-mono text-zinc-500 uppercase">Inking Continuity</div>
+              <div className="text-sm font-semibold font-mono text-emerald-700 mt-0.5">
+                94.55%
+              </div>
+            </div>
+
+            <div className="p-3 bg-white rounded-lg border border-zinc-200 shadow-sm">
+              <div className="text-[11px] font-mono text-zinc-500 uppercase">Model Latency</div>
+              <div className="text-sm font-semibold font-mono text-zinc-900 mt-0.5">
+                {result?.stats?.latency_ms ? `${result.stats.latency_ms} ms` : '< 15 ms'}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-

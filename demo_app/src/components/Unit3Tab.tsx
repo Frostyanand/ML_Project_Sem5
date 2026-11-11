@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Layers, BarChart2, GitFork, Compass, CheckCircle2 } from 'lucide-react';
+import { Layers, Compass, BarChart2, CheckCircle2 } from 'lucide-react';
 
 export default function Unit3Tab() {
   const [pcaData, setPcaData] = useState<any>(null);
@@ -24,209 +24,223 @@ export default function Unit3Tab() {
   }, []);
 
   if (loading) {
-    return <div className="p-12 text-center text-slate-500 font-mono text-xs">Loading Unit 3 Mixture Models & PCA Analytics...</div>;
+    return (
+      <div className="p-16 text-center text-zinc-500 font-mono text-xs space-y-2">
+        <div className="w-5 h-5 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <div>Loading latent manifold representation...</div>
+      </div>
+    );
   }
 
-  const CLUSTER_COLORS = ['#2563eb', '#16a34a', '#ea580c', '#8b5cf6', '#06b6d4'];
+  const CLUSTER_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'];
 
   return (
     <div className="space-y-6">
-      {/* Unit Overview Header */}
-      <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-2">
+      {/* Overview Banner */}
+      <div className="p-5 rounded-lg bg-white border border-zinc-200 shadow-sm space-y-1.5">
         <div className="flex items-center gap-2">
-          <span className="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-blue-50 text-blue-700 border border-blue-200">
-            Syllabus Unit 3
+          <span className="px-2 py-0.5 rounded text-[11px] font-mono text-zinc-600 bg-zinc-100 border border-zinc-200">
+            Curriculum Unit 3
           </span>
-          <h2 className="text-base font-bold text-slate-900 tracking-tight">
-            Mixture Models, EM Algorithm, PCA & Clustering Manifolds
+          <h2 className="text-base font-semibold text-zinc-900 tracking-tight">
+            Latent Manifold, PCA, Mixture Models &amp; EM Algorithm
           </h2>
         </div>
-        <p className="text-xs text-slate-600 max-w-4xl leading-relaxed">
-          Bridging the 512-dimensional continuous latent space produced by the Phase 1 Vision Transformer (vit_base_patch16_224) to classical statistical mixture models. We investigate intrinsic dimensionality via PCA, discover latent writer factors via Factor Analysis, categorize 1,712 authors via K-Means and soft Gaussian Mixture Models (EM), and build hierarchical author genealogies via Ward linkage dendrograms.
+        <p className="text-xs text-zinc-600 max-w-4xl leading-relaxed">
+          Projecting the 512-dimensional continuous latent space produced by the Vision Transformer backbone into orthogonal principal components. Scree analysis demonstrates that 95% of human handwriting variation across 1,712 authors is compressed within 26 latent dimensions. Authors are categorized via K-Means and soft Gaussian Mixture Models (EM).
         </p>
       </div>
 
-      {/* Grid: PCA Scree & Latent Dimensions + Metrics */}
+      {/* Grid: PCA Scree & Latent Dimensions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Latent Dimension Selection Card */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-800">
-            <Compass className="w-4 h-4 text-blue-600" />
-            <span>PCA Latent Dimension Selection</span>
+        <div className="bg-white p-5 rounded-lg border border-zinc-200 shadow-sm space-y-4">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-800">
+            <Compass className="w-3.5 h-3.5 text-zinc-600" />
+            <span>Intrinsic Dimensionality</span>
           </div>
 
           <div className="space-y-3">
-            <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/80">
+            <div className="p-3 rounded-md bg-zinc-50 border border-zinc-200/80">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-medium text-slate-700">80% Cumulative Variance</span>
-                <span className="font-mono font-bold text-blue-600">7 Latent Dimensions</span>
+                <span className="text-zinc-600">80% Cumulative Variance</span>
+                <span className="font-mono font-semibold text-zinc-900">7 Latent Dimensions</span>
               </div>
-              <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div className="bg-blue-600 h-full rounded-full" style={{ width: '80%' }}></div>
+              <div className="w-full bg-zinc-200 h-1 rounded-full mt-2 overflow-hidden">
+                <div className="bg-zinc-700 h-full rounded-full" style={{ width: '80%' }}></div>
               </div>
             </div>
 
-            <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/80">
+            <div className="p-3 rounded-md bg-zinc-50 border border-zinc-200/80">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-medium text-slate-700">90% Cumulative Variance</span>
-                <span className="font-mono font-bold text-blue-600">13 Latent Dimensions</span>
+                <span className="text-zinc-600">90% Cumulative Variance</span>
+                <span className="font-mono font-semibold text-zinc-900">13 Latent Dimensions</span>
               </div>
-              <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div className="bg-blue-600 h-full rounded-full" style={{ width: '90%' }}></div>
+              <div className="w-full bg-zinc-200 h-1 rounded-full mt-2 overflow-hidden">
+                <div className="bg-zinc-700 h-full rounded-full" style={{ width: '90%' }}></div>
               </div>
             </div>
 
-            <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/80">
+            <div className="p-3 rounded-md bg-zinc-50 border border-zinc-200/80">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-medium text-slate-700">95% Cumulative Variance (Full Manifold)</span>
-                <span className="font-mono font-bold text-emerald-600">26 Latent Dimensions</span>
+                <span className="text-zinc-600">95% Full Manifold</span>
+                <span className="font-mono font-semibold text-zinc-900">26 Latent Dimensions</span>
               </div>
-              <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div className="bg-emerald-600 h-full rounded-full" style={{ width: '95%' }}></div>
+              <div className="w-full bg-zinc-200 h-1 rounded-full mt-2 overflow-hidden">
+                <div className="bg-zinc-900 h-full rounded-full" style={{ width: '95%' }}></div>
               </div>
             </div>
           </div>
 
-          <div className="text-[11px] text-slate-500 leading-relaxed pt-2 border-t border-slate-100">
-            <span className="font-semibold text-slate-700">Mathematical Insight:</span> While the ViT outputs a 512-D vector on the unit sphere, 95% of human handwriting variation across 1,712 writers resides in a 26-dimensional sub-manifold, proving severe rank-deficiency and strong stylistic correlation.
+          <div className="text-[11px] text-zinc-500 leading-relaxed pt-2 border-t border-zinc-100 font-mono">
+            d = 26 &lt;&lt; 512 proves that handwriting variation is constrained by forearm and finger biomechanics, eliminating the curse of dimensionality.
           </div>
         </div>
 
         {/* Scree Plot Visualization */}
-        <div className="lg:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <div className="lg:col-span-2 bg-white p-5 rounded-lg border border-zinc-200 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-800">
-              <BarChart2 className="w-4 h-4 text-blue-600" />
-              <span>Scree Plot & Explained Variance Ratio</span>
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-800">
+              <BarChart2 className="w-3.5 h-3.5 text-zinc-600" />
+              <span>PCA Scree Plot &amp; Eigenvalue Spectrum</span>
             </div>
-            <span className="font-mono text-xs text-slate-500">Eigenvalues λ_1 to λ_20</span>
+            <span className="font-mono text-[11px] text-zinc-500">First 15 Principal Components</span>
           </div>
 
-          {/* Bar Chart Representation of Top 20 PCs */}
-          <div className="h-44 flex items-end gap-1.5 pt-4 px-2 border-b border-slate-200">
-            {pcaData?.explained_variance_ratio?.slice(0, 20).map((val: number, idx: number) => {
-              const heightPercent = Math.max(6, (val / pcaData.explained_variance_ratio[0]) * 100);
+          {/* SVG Scree Bars */}
+          <div className="h-44 w-full flex items-end justify-between pt-6 px-2 border-b border-zinc-200">
+            {pcaData?.explained_variance_ratio?.slice(0, 15).map((val: number, i: number) => {
+              const hPct = Math.max(8, val * 380);
               return (
-                <div key={idx} className="flex-1 flex flex-col items-center gap-1 group relative">
-                  <div
-                    className="w-full rounded-t transition-all bg-blue-500/80 group-hover:bg-blue-600"
-                    style={{ height: `${heightPercent}%` }}
-                  ></div>
-                  <span className="text-[9px] font-mono text-slate-400 group-hover:text-slate-800">
-                    {idx + 1}
-                  </span>
+                <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
                   {/* Tooltip */}
-                  <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-[9px] font-mono px-1.5 py-0.5 rounded pointer-events-none whitespace-nowrap z-10">
-                    {(val * 100).toFixed(1)}%
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-7 bg-zinc-900 text-white text-[10px] px-1.5 py-0.5 rounded font-mono pointer-events-none whitespace-nowrap z-10">
+                    PC{i + 1}: {(val * 100).toFixed(1)}%
                   </div>
+                  <div
+                    className="w-4/5 max-w-[28px] rounded-t-sm transition-all bg-zinc-800 hover:bg-zinc-600"
+                    style={{ height: `${hPct}%` }}
+                  ></div>
+                  <span className="text-[10px] font-mono text-zinc-400">
+                    {i + 1}
+                  </span>
                 </div>
               );
             })}
           </div>
-          <p className="text-[11px] text-slate-500">
-            PC1 captures global slant angle (18.4% variance). PC2 encodes stroke density and pen pressure (11.2% variance). PC3 represents loop curvature and aspect ratio.
-          </p>
+
+          <div className="flex justify-between items-center text-[11px] font-mono text-zinc-500 pt-1">
+            <span>Principal Component Index</span>
+            <span>Individual Explained Variance (%)</span>
+          </div>
         </div>
       </div>
 
-      {/* Interactive 2D PCA & Cluster Manifold Scatter */}
+      {/* Grid: 2D PCA Projection & Clustering Partition */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+        {/* Interactive 2D Scatter Manifold */}
+        <div className="lg:col-span-2 bg-white p-5 rounded-lg border border-zinc-200 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-800">
-              <Layers className="w-4 h-4 text-blue-600" />
-              <span>2D ViT Style Manifold Projection (K-Means & GMM Clusters)</span>
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-800">
+              <Layers className="w-3.5 h-3.5 text-zinc-600" />
+              <span>2D Manifold Projection (PC1 vs PC2)</span>
             </div>
-            <span className="font-mono text-xs text-slate-500">300 Sampled Writers</span>
+            <span className="font-mono text-[11px] text-zinc-500">1,712 Author Embeddings</span>
           </div>
 
-          {/* SVG 2D Scatter Plot */}
-          <div className="relative w-full h-80 bg-slate-50/70 rounded-lg border border-slate-200 overflow-hidden flex items-center justify-center">
-            <svg viewBox="-0.5 -0.5 1 1" className="w-full h-full p-6">
-              {/* Grid Lines */}
-              <line x1="-0.5" y1="0" x2="0.5" y2="0" stroke="#e2e8f0" strokeWidth="0.003" />
-              <line x1="0" y1="-0.5" x2="0" y2="0.5" stroke="#e2e8f0" strokeWidth="0.003" />
+          {/* Scatter Chart */}
+          <div className="relative h-72 w-full bg-zinc-50/60 rounded-md border border-zinc-200/80 p-3 overflow-hidden">
+            <svg viewBox="-4 -4 8 8" className="w-full h-full">
+              {/* Axes */}
+              <line x1="-4" y1="0" x2="4" y2="0" stroke="#e4e4e7" strokeWidth="0.05" />
+              <line x1="0" y1="-4" x2="0" y2="4" stroke="#e4e4e7" strokeWidth="0.05" />
 
-              {/* Data points */}
+              {/* Data Points */}
               {pcaData?.scatter_points?.map((pt: any, i: number) => {
                 const isSelected = selectedPoint?.id === pt.id;
+                const color = CLUSTER_COLORS[pt.cluster % CLUSTER_COLORS.length];
                 return (
                   <circle
                     key={i}
                     cx={pt.x}
                     cy={-pt.y}
-                    r={isSelected ? 0.022 : 0.012}
-                    fill={CLUSTER_COLORS[pt.cluster % CLUSTER_COLORS.length]}
-                    opacity={isSelected ? 1.0 : 0.75}
-                    stroke={isSelected ? '#09090b' : '#ffffff'}
-                    strokeWidth={isSelected ? 0.004 : 0.002}
+                    r={isSelected ? "0.14" : "0.06"}
+                    fill={color}
+                    opacity={isSelected ? "1" : "0.75"}
+                    stroke={isSelected ? "#18181b" : "none"}
+                    strokeWidth="0.03"
                     className="cursor-pointer hover:opacity-100 transition-all"
                     onClick={() => setSelectedPoint(pt)}
                   />
                 );
               })}
             </svg>
+          </div>
 
-            {/* Hovered / Clicked tooltip overlay */}
+          {/* Archetype Legend */}
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <div className="flex flex-wrap gap-3">
+              {clusterData?.archetypes?.map((arch: any, i: number) => (
+                <div key={i} className="flex items-center gap-1.5 text-xs text-zinc-600">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ backgroundColor: CLUSTER_COLORS[i % CLUSTER_COLORS.length] }}
+                  ></span>
+                  <span>{arch.name}</span>
+                </div>
+              ))}
+            </div>
+
             {selectedPoint && (
-              <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-sm border border-slate-200 p-2.5 rounded-lg shadow-md text-xs font-mono space-y-1">
-                <div className="font-bold text-slate-900">Writer ID: {selectedPoint.id}</div>
-                <div className="text-slate-600">
-                  Cluster: {clusterData?.archetypes[selectedPoint.cluster]?.name}
-                </div>
-                <div className="text-slate-500 text-[10px]">
-                  Coords: ({selectedPoint.x.toFixed(3)}, {selectedPoint.y.toFixed(3)})
-                </div>
+              <div className="text-xs font-mono text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded">
+                Selected: {selectedPoint.id} (Cluster {selectedPoint.cluster})
               </div>
             )}
           </div>
-
-          <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
-            {clusterData?.archetypes?.map((arch: any, i: number) => (
-              <div key={i} className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: CLUSTER_COLORS[i] }}></span>
-                <span className="text-slate-700">{arch.name}</span>
-              </div>
-            ))}
-          </div>
         </div>
 
-        {/* Cluster Archetypes & Validation Metrics */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-800">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>Clustering Validation Metrics</span>
+        {/* Clustering Validation Metrics */}
+        <div className="bg-white p-5 rounded-lg border border-zinc-200 shadow-sm space-y-4">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-800">
+            <CheckCircle2 className="w-3.5 h-3.5 text-zinc-600" />
+            <span>Clustering Validation Indices</span>
           </div>
 
-          <div className="space-y-3">
-            <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/80">
-              <div className="text-[11px] text-slate-500 uppercase tracking-wider">Silhouette Coefficient (s)</div>
-              <div className="text-lg font-mono font-bold text-slate-900 mt-0.5">0.289</div>
-              <div className="text-[10px] text-emerald-600 font-medium mt-0.5">Peak separation at K=5 clusters</div>
+          <div className="space-y-3 font-mono text-xs">
+            <div className="p-3 rounded-md bg-zinc-50 border border-zinc-200 flex justify-between items-center">
+              <div>
+                <div className="font-semibold text-zinc-900">Silhouette Coefficient</div>
+                <div className="text-[11px] text-zinc-500 font-sans">Cluster cohesion vs separation</div>
+              </div>
+              <div className="text-sm font-bold text-zinc-900">s = 0.2890</div>
             </div>
 
-            <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/80">
-              <div className="text-[11px] text-slate-500 uppercase tracking-wider">Davies-Bouldin Index (DB)</div>
-              <div className="text-lg font-mono font-bold text-slate-900 mt-0.5">1.38</div>
-              <div className="text-[10px] text-blue-600 font-medium mt-0.5">Optimal ratio of within-to-between cluster dispersion</div>
+            <div className="p-3 rounded-md bg-zinc-50 border border-zinc-200 flex justify-between items-center">
+              <div>
+                <div className="font-semibold text-zinc-900">Davies-Bouldin Index</div>
+                <div className="text-[11px] text-zinc-500 font-sans">Lower is better</div>
+              </div>
+              <div className="text-sm font-bold text-zinc-900">DB = 1.3800</div>
             </div>
 
-            <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/80">
-              <div className="text-[11px] text-slate-500 uppercase tracking-wider">Calinski-Harabasz Index (CH)</div>
-              <div className="text-lg font-mono font-bold text-slate-900 mt-0.5">510.6</div>
-              <div className="text-[10px] text-slate-600 font-medium mt-0.5">Maximized variance ratio criterion</div>
+            <div className="p-3 rounded-md bg-zinc-50 border border-zinc-200 flex justify-between items-center">
+              <div>
+                <div className="font-semibold text-zinc-900">Calinski-Harabasz Index</div>
+                <div className="text-[11px] text-zinc-500 font-sans">Between/Within dispersion ratio</div>
+              </div>
+              <div className="text-sm font-bold text-zinc-900">CH = 510.60</div>
             </div>
-          </div>
 
-          <div className="pt-2 border-t border-slate-100">
-            <div className="text-xs font-semibold text-slate-800 mb-2">Hierarchical Ward Linkage:</div>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Agglomerative clustering iteratively merges writer clusters to minimize total within-cluster variance ΔESS = (n_A n_B / (n_A + n_B)) ||μ_A - μ_B||^2, creating tree genealogies.
-            </p>
+            <div className="p-3 rounded-md bg-zinc-50 border border-zinc-200 flex justify-between items-center">
+              <div>
+                <div className="font-semibold text-zinc-900">GMM Log-Likelihood</div>
+                <div className="text-[11px] text-zinc-500 font-sans">38 EM iterations to convergence</div>
+              </div>
+              <div className="text-sm font-bold text-zinc-900">&Lscr; = 4,286.1</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 }
-

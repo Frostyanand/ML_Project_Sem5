@@ -6,7 +6,6 @@ import SynthesisTab from '../components/SynthesisTab';
 import Unit3Tab from '../components/Unit3Tab';
 import Unit4Tab from '../components/Unit4Tab';
 import Unit5Tab from '../components/Unit5Tab';
-import TheoryTab from '../components/TheoryTab';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<string>('synthesis');
@@ -33,17 +32,17 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
-      {/* Top Header */}
+    <div className="min-h-screen flex flex-col bg-zinc-50 text-zinc-900">
+      {/* Navigation Header */}
       <Header activeTab={activeTab} setActiveTab={setActiveTab} status={status} />
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {isInitializing ? (
-          <div className="flex flex-col items-center justify-center min-h-[400px] space-y-3">
-            <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="font-mono text-xs text-slate-500">
-              Connecting to FastAPI Model Server (PyTorch SDT &amp; ViT Style Manifold)...
+          <div className="flex flex-col items-center justify-center min-h-[420px] space-y-3">
+            <div className="w-6 h-6 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin"></div>
+            <p className="font-mono text-xs text-zinc-500">
+              Connecting to model inference service...
             </p>
           </div>
         ) : (
@@ -54,29 +53,25 @@ export default function Home() {
             {activeTab === 'unit3' && <Unit3Tab />}
             {activeTab === 'unit4' && <Unit4Tab />}
             {activeTab === 'unit5' && <Unit5Tab />}
-            {activeTab === 'defense' && <TheoryTab />}
           </div>
         )}
       </main>
 
-      {/* Minimal Engineering Footer */}
-      <footer className="border-t border-slate-200 bg-white py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 font-mono">
+      {/* Clean Technical Footer */}
+      <footer className="border-t border-zinc-200 bg-white py-5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-zinc-500 font-mono">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-700">Project Nano Banana Pro</span>
+            <span className="font-semibold text-zinc-700">Handwriting Synthesis Platform</span>
             <span>·</span>
-            <span>Machine Learning &amp; Deep Generative Handwriting Systems</span>
+            <span>Department of Computer Science &amp; Engineering</span>
           </div>
-          <div className="flex items-center gap-4">
-            <span>SDT MDN-20 Checkpoint</span>
+          <div className="flex items-center gap-3 text-zinc-400">
+            <span>IAM Dataset Benchmark</span>
             <span>·</span>
-            <span>IAM Offline &amp; Online Dataset</span>
-            <span>·</span>
-            <span className="text-emerald-600 font-bold">IEEE Standard Compliant</span>
+            <span>Vision Transformer &amp; SDT</span>
           </div>
         </div>
       </footer>
     </div>
   );
 }
-

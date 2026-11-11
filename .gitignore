@@ -50,6 +50,7 @@ Thumbs.db
 session3_complete.pt
 Models/
 
-# Keep essential lightweight dataset (3.8 MB)
+# Keep essential lightweight dataset (3.8 MB) and ground truth trajectories (710 KB)
 !data/writer_style_vectors.pt
+!data/ground_truth_samples.json
 
