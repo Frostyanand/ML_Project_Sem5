@@ -11,6 +11,8 @@ interface HandwritingCanvasProps {
   text?: string;
   writerId?: string;
   isRealSample?: boolean;
+  compact?: boolean;
+  titleBadge?: string;
 }
 
 export default function HandwritingCanvas({
@@ -20,7 +22,9 @@ export default function HandwritingCanvas({
   viterbiStates = [],
   text = "",
   writerId = "",
-  isRealSample = false
+  isRealSample = false,
+  compact = false,
+  titleBadge = ""
 }: HandwritingCanvasProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(1.0); // 0 to 1
@@ -154,6 +158,11 @@ export default function HandwritingCanvas({
           <span className="font-medium text-zinc-900">
             {isRealSample ? 'Reference Specimen' : 'Generated Trajectory'}
           </span>
+          {titleBadge && (
+            <span className="px-1.5 py-0.5 rounded bg-zinc-200/60 text-zinc-700 text-[10px] font-sans">
+              {titleBadge}
+            </span>
+          )}
           {writerId && (
             <span className="px-1.5 py-0.5 rounded bg-zinc-200/80 text-zinc-700 text-[11px]">
               Author: {writerId}
@@ -227,7 +236,7 @@ export default function HandwritingCanvas({
       </div>
 
       {/* SVG Vector Canvas */}
-      <div className={`relative min-h-[260px] max-h-[380px] w-full flex items-center justify-center p-6 overflow-hidden ${
+      <div className={`relative ${compact ? 'min-h-[170px] max-h-[220px] p-3' : 'min-h-[260px] max-h-[380px] p-6'} w-full flex items-center justify-center overflow-hidden ${
         paperBackground ? 'bg-[#fcfdfd]' : 'bg-white'
       }`}>
         {/* Subtle Ruled Lines */}
@@ -239,15 +248,15 @@ export default function HandwritingCanvas({
         )}
 
         {trajectory.length === 0 ? (
-          <div className="flex flex-col items-center justify-center text-zinc-400 py-16 font-mono text-xs">
+          <div className="flex flex-col items-center justify-center text-zinc-400 py-12 font-mono text-xs">
             <FileCode className="w-6 h-6 mb-2 text-zinc-300" />
             <span>No trajectory data. Enter text and click Generate.</span>
           </div>
         ) : (
           <svg
-            id="handwriting-svg"
+            id={`handwriting-svg-${writerId || 'default'}-${isRealSample ? 'real' : 'synth'}`}
             viewBox={`${bounds.minX} ${-bounds.maxY} ${bounds.width} ${bounds.height}`}
-            className="w-full h-full max-h-[300px] transition-all duration-300"
+            className={`w-full h-full ${compact ? 'max-h-[190px]' : 'max-h-[300px]'} transition-all duration-300`}
             style={{ filter: 'drop-shadow(0px 1px 1px rgba(0,0,0,0.06))' }}
           >
             {/* Draw Path Segments */}

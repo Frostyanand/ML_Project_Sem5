@@ -225,7 +225,8 @@ def init_system():
     if os.path.exists(samples_json_path):
         with open(samples_json_path, "r", encoding="utf-8") as f:
             STATE["s3_data"] = json.load(f)
-            print(f"✅ Loaded {len(STATE['s3_data'])} ground truth handwriting sequences from {samples_json_path}")
+            STATE["writer_to_sample"] = {item['writer_id']: item for item in STATE["s3_data"]}
+            print(f"✅ Loaded {len(STATE['s3_data'])} ground truth handwriting sequences for {len(STATE['writer_to_sample'])} writers from {samples_json_path}")
     else:
         s3_path = os.path.join(base_proj, "session3_complete.pt")
         if os.path.exists(s3_path):
@@ -236,13 +237,15 @@ def init_system():
                     "writer_id": item["writer_id"],
                     "text": item["text"],
                     "total_points": len(item["strokes"]),
-                    "strokes": item["strokes"].numpy().tolist()
+                    "strokes": item["strokes"].numpy().tolist() if hasattr(item["strokes"], "numpy") else item["strokes"]
                 }
-                for i, item in enumerate(s3_raw[:30])
+                for i, item in enumerate(s3_raw)
             ]
-            print(f"✅ Extracted ground truth samples from {s3_path}")
+            STATE["writer_to_sample"] = {item['writer_id']: item for item in STATE["s3_data"]}
+            print(f"✅ Extracted {len(STATE['s3_data'])} ground truth samples from {s3_path}")
         else:
             STATE["s3_data"] = []
+            STATE["writer_to_sample"] = {}
     
     # 5. Train Ensemble Classifier for Live Prediction
     rf = RandomForestClassifier(n_estimators=40, max_depth=8, random_state=42)
@@ -288,6 +291,9 @@ def get_status():
 def get_writers():
     writer_ids = STATE["writer_ids"]
     labels = STATE["kmeans_labels"]
+    wid_to_idx = {wid: i for i, wid in enumerate(writer_ids)}
+    w_map = STATE.get("writer_to_sample", {})
+    
     archetypes = [
         "Type I: Compact Slant",
         "Type II: Upright Block",
@@ -296,14 +302,21 @@ def get_writers():
         "Type V: Loose Sprawling"
     ]
     
+    # Prioritize writers with authentic ground truth samples
+    paired_wids = [w for w in writer_ids if w in w_map]
+    other_wids = [w for w in writer_ids if w not in w_map]
+    sorted_wids = paired_wids + other_wids
+    
     sample_list = []
-    for i, wid in enumerate(writer_ids[:60]): # Return first 60 for clean UI
+    for wid in sorted_wids[:60]: # Return first 60 for clean UI
+        idx = wid_to_idx[wid]
         sample_list.append({
             "id": wid,
-            "archetype_id": int(labels[i]),
-            "archetype_name": archetypes[int(labels[i])],
-            "pca_x": float(STATE["X_pca"][i, 0]),
-            "pca_y": float(STATE["X_pca"][i, 1])
+            "archetype_id": int(labels[idx]),
+            "archetype_name": archetypes[int(labels[idx])],
+            "has_real_sample": wid in w_map,
+            "pca_x": float(STATE["X_pca"][idx, 0]),
+            "pca_y": float(STATE["X_pca"][idx, 1])
         })
     return {
         "writers": sample_list,
@@ -671,25 +684,34 @@ def get_unit5_benchmark():
     }
 
 @app.get("/api/samples/real")
-def get_real_sample(index: int = 0):
+def get_real_sample(index: int = 0, writer_id: Optional[str] = None):
     s3_data = STATE.get("s3_data", [])
-    if not s3_data:
+    w_map = STATE.get("writer_to_sample", {})
+    
+    item = None
+    if writer_id and writer_id in w_map:
+        item = w_map[writer_id]
+        idx = item.get("index", 0)
+    elif s3_data:
+        idx = index % len(s3_data)
+        item = s3_data[idx]
+        
+    if not item:
         # Fallback procedural authentic sequence
         t = np.linspace(0, 4 * np.pi, 120)
         xs = np.cumsum(1.2 + 0.4 * np.cos(t))
         ys = np.cumsum(2.2 * np.sin(t))
         return {
             "index": 0,
-            "writer_id": "a01-000",
+            "writer_id": writer_id or "a01-000",
             "text": "Handwriting Synthesis Benchmark",
             "total_points": len(t),
             "trajectory": [[float(xs[i]), float(ys[i])] for i in range(len(t))],
+            "strokes": [[float(xs[i]), float(ys[i]), 0.0] for i in range(len(t))],
+            "points": [[float(xs[i]), float(ys[i]), 0.0] for i in range(len(t))],
             "pen_lifts": 4
         }
         
-    idx = index % len(s3_data)
-    item = s3_data[idx]
-    
     raw_strokes = item['strokes']
     if hasattr(raw_strokes, 'numpy'):
         strokes_np = raw_strokes.numpy()
