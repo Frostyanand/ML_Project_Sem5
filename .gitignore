@@ -42,7 +42,10 @@ Thumbs.db
 *.log
 *.tmp
 
-# Large Model Checkpoints (> 50MB)
+# Scratch & Temporary Testing
+scratch/
+test_*.py
+
 *.pth
 *.ckpt
 *.h5

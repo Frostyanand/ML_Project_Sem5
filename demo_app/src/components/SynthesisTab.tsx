@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
-import { PenTool, FileText, Sliders, RefreshCw, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { PenTool, FileText, Sliders, RefreshCw, CheckCircle2, Sparkles } from 'lucide-react';
 import HandwritingCanvas from './HandwritingCanvas';
 
 interface SynthesisTabProps {
@@ -30,6 +30,30 @@ export default function SynthesisTab({ writers, archetypes }: SynthesisTabProps)
     "Stacking Meta-Ensemble Optimization",
     "The quick brown fox jumps over the lazy dog"
   ];
+
+  // Archetype traits mapping for biometric profile display
+  const activeWriterObj = writers.find((w: any) => w.id === selectedWriter) || writers[0];
+  const archetypeTraits: Record<number, { slant: string; spacing: string; motor: string }> = {
+    0: { slant: "+24° Italic", spacing: "Compact (0.85×)", motor: "High-velocity angular downstrokes" },
+    1: { slant: "+1° Upright", spacing: "Medium (1.00×)", motor: "Detached vertical print forms" },
+    2: { slant: "+15° Forward", spacing: "Condensed (0.78×)", motor: "Tightly packed angular ligatures" },
+    3: { slant: "+27° Sweeping", spacing: "Flowing (1.35×)", motor: "Broad loops & exaggerated ascenders" },
+    4: { slant: "+12° Natural", spacing: "Sprawling (1.22×)", motor: "Relaxed spacing & baseline wander" },
+  };
+  const activeTraits = archetypeTraits[activeWriterObj?.archetype_id ?? 0] || archetypeTraits[0];
+
+  useEffect(() => {
+    if (writers.length > 0 && !selectedWriter) {
+      setSelectedWriter(writers[0].id);
+    }
+  }, [writers, selectedWriter]);
+
+  // Initial synthesis on mount
+  useEffect(() => {
+    if (writers.length > 0 && !result && !isLoading) {
+      handleSynthesize();
+    }
+  }, [writers]);
 
   const handleSynthesize = async () => {
     if (!text.trim()) return;
@@ -152,6 +176,24 @@ export default function SynthesisTab({ writers, archetypes }: SynthesisTabProps)
                 </option>
               ))}
             </select>
+
+            {/* Stylistic Biometric Profile Card */}
+            {activeWriterObj && (
+              <div className="p-2.5 rounded-md bg-zinc-50 border border-zinc-200/90 space-y-1.5 text-[11px] font-mono">
+                <div className="flex justify-between items-center text-zinc-700">
+                  <span className="text-zinc-500 font-sans">Kinematic Slant:</span>
+                  <span className="font-semibold text-zinc-900">{activeTraits.slant}</span>
+                </div>
+                <div className="flex justify-between items-center text-zinc-700">
+                  <span className="text-zinc-500 font-sans">Letter Spacing:</span>
+                  <span className="font-semibold text-zinc-900">{activeTraits.spacing}</span>
+                </div>
+                <div className="flex justify-between items-center text-zinc-700">
+                  <span className="text-zinc-500 font-sans">Motor Dynamic:</span>
+                  <span className="text-[10px] text-zinc-600 truncate max-w-[150px]">{activeTraits.motor}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Sliders */}

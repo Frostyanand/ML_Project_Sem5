@@ -108,20 +108,25 @@ export default function Unit3Tab() {
           </div>
 
           {/* SVG Scree Bars */}
-          <div className="h-44 w-full flex items-end justify-between pt-6 px-2 border-b border-zinc-200">
+          <div className="h-44 w-full flex items-end justify-between pt-4 px-2 border-b border-zinc-200">
             {pcaData?.explained_variance_ratio?.slice(0, 15).map((val: number, i: number) => {
-              const hPct = Math.max(8, val * 380);
+              const hPct = Math.min(100, Math.max(12, val * 220));
               return (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
+                <div key={i} className="flex-1 h-36 flex flex-col justify-end items-center gap-1 group relative pb-1">
                   {/* Tooltip */}
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-7 bg-zinc-900 text-white text-[10px] px-1.5 py-0.5 rounded font-mono pointer-events-none whitespace-nowrap z-10">
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-7 bg-zinc-900 text-white text-[10px] px-1.5 py-0.5 rounded font-mono pointer-events-none whitespace-nowrap z-10 shadow">
                     PC{i + 1}: {(val * 100).toFixed(1)}%
                   </div>
+                  {/* Value Label */}
+                  <span className="text-[9px] font-mono text-zinc-500 font-medium leading-none">
+                    {(val * 100).toFixed(0)}%
+                  </span>
+                  {/* Visual Bar */}
                   <div
-                    className="w-4/5 max-w-[28px] rounded-t-sm transition-all bg-zinc-800 hover:bg-zinc-600"
+                    className="w-3/5 max-w-[22px] rounded-t-sm transition-all bg-zinc-800 hover:bg-zinc-600 shadow-sm"
                     style={{ height: `${hPct}%` }}
                   ></div>
-                  <span className="text-[10px] font-mono text-zinc-400">
+                  <span className="text-[10px] font-mono text-zinc-400 mt-0.5">
                     {i + 1}
                   </span>
                 </div>
@@ -150,10 +155,10 @@ export default function Unit3Tab() {
 
           {/* Scatter Chart */}
           <div className="relative h-72 w-full bg-zinc-50/60 rounded-md border border-zinc-200/80 p-3 overflow-hidden">
-            <svg viewBox="-4 -4 8 8" className="w-full h-full">
+            <svg viewBox="-3.2 -3.2 6.4 6.4" className="w-full h-full">
               {/* Axes */}
-              <line x1="-4" y1="0" x2="4" y2="0" stroke="#e4e4e7" strokeWidth="0.05" />
-              <line x1="0" y1="-4" x2="0" y2="4" stroke="#e4e4e7" strokeWidth="0.05" />
+              <line x1="-3.2" y1="0" x2="3.2" y2="0" stroke="#e4e4e7" strokeWidth="0.04" />
+              <line x1="0" y1="-3.2" x2="0" y2="3.2" stroke="#e4e4e7" strokeWidth="0.04" />
 
               {/* Data Points */}
               {pcaData?.scatter_points?.map((pt: any, i: number) => {
@@ -164,7 +169,7 @@ export default function Unit3Tab() {
                     key={i}
                     cx={pt.x}
                     cy={-pt.y}
-                    r={isSelected ? "0.14" : "0.06"}
+                    r={isSelected ? "0.14" : "0.08"}
                     fill={color}
                     opacity={isSelected ? "1" : "0.75"}
                     stroke={isSelected ? "#18181b" : "none"}
@@ -236,7 +241,7 @@ export default function Unit3Tab() {
                 <div className="font-semibold text-zinc-900">GMM Log-Likelihood</div>
                 <div className="text-[11px] text-zinc-500 font-sans">38 EM iterations to convergence</div>
               </div>
-              <div className="text-sm font-bold text-zinc-900">&Lscr; = 4,286.1</div>
+              <div className="text-sm font-bold text-zinc-900">ln L = 4,286.1</div>
             </div>
           </div>
         </div>

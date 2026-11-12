@@ -197,6 +197,7 @@ def init_system():
     kmeans_labels = kmeans.fit_predict(X_pca[:, :5])
     STATE["kmeans"] = kmeans
     STATE["kmeans_labels"] = kmeans_labels
+    STATE["writer_to_cluster"] = {wid: int(lbl) for wid, lbl in zip(writer_ids, kmeans_labels)}
     
     gmm = GaussianMixture(n_components=5, covariance_type='full', random_state=42)
     gmm.fit(X_pca[:, :2])
@@ -310,26 +311,26 @@ def get_writers():
         "total_count": len(writer_ids)
     }
 
-def run_kalman(points_2d, q=0.05, r=0.40):
-    T_steps = len(points_2d)
-    if T_steps < 2: return points_2d
-    raw_pos = np.cumsum(points_2d, axis=0)
+def run_kalman_pos(raw_pos, q=0.05, r=0.40):
+    T_steps = len(raw_pos)
+    if T_steps < 2: return raw_pos
+    pos_arr = np.array(raw_pos, dtype=np.float64)
     
     dt = 1.0
-    F_mat = np.array([[1, 0, dt, 0], [0, 1, 0, dt], [0, 0, 1, 0], [0, 0, 0, 1]])
-    H_mat = np.array([[1, 0, 0, 0], [0, 1, 0, 0]])
-    Q_cov = np.eye(4) * q
-    R_cov = np.eye(2) * r
+    F_mat = np.array([[1, 0, dt, 0], [0, 1, 0, dt], [0, 0, 1, 0], [0, 0, 0, 1]], dtype=np.float64)
+    H_mat = np.array([[1, 0, 0, 0], [0, 1, 0, 0]], dtype=np.float64)
+    Q_cov = np.eye(4, dtype=np.float64) * q
+    R_cov = np.eye(2, dtype=np.float64) * r
     
-    x_est = np.array([raw_pos[0, 0], raw_pos[0, 1], 0, 0])
-    P_est = np.eye(4) * 1.0
-    kalman_pos = np.zeros((T_steps, 2))
+    x_est = np.array([pos_arr[0, 0], pos_arr[0, 1], 0.0, 0.0], dtype=np.float64)
+    P_est = np.eye(4, dtype=np.float64) * 1.0
+    kalman_pos = np.zeros((T_steps, 2), dtype=np.float64)
     
     for t in range(T_steps):
         x_pred = F_mat @ x_est
         P_pred = F_mat @ P_est @ F_mat.T + Q_cov
         
-        z_meas = raw_pos[t]
+        z_meas = pos_arr[t]
         y_innov = z_meas - H_mat @ x_pred
         S_cov = H_mat @ P_pred @ H_mat.T + R_cov
         K_gain = P_pred @ H_mat.T @ np.linalg.inv(S_cov)
@@ -338,94 +339,119 @@ def run_kalman(points_2d, q=0.05, r=0.40):
         P_est = (np.eye(4) - K_gain @ H_mat) @ P_pred
         kalman_pos[t] = x_est[:2]
         
-    return kalman_pos
+    return kalman_pos.tolist()
 
-def get_char_waypoints(c):
-    c = c.lower()
-    if c == 'a': return [(0, -2), (2, 2.5), (4, 0), (4, -4), (2, -5), (0, -3), (2, 0), (4, -5), (6, -4)]
-    if c == 'b': return [(0, -5), (0, 7), (1, 5), (3, 2), (4, 0), (3, -3), (1, -5), (4, -4)]
-    if c == 'c': return [(4, 2), (2, 2.5), (0, 0), (0, -3), (2, -5), (5, -4)]
-    if c == 'd': return [(4, -5), (2, -5), (0, -3), (0, 0), (2, 2.5), (4, 0), (4, 7), (4, -5), (6, -4)]
-    if c == 'e': return [(0, -2), (4, -1), (3, 2.5), (1, 2), (0, -1), (2, -5), (5, -4)]
-    if c == 'f': return [(1, -5), (1, 7), (3, 7.5), (3, 6), (1, 1), (1, -7), (3, -6)]
-    if c == 'g': return [(4, -5), (2, -5), (0, -3), (0, 0), (2, 2.5), (4, 0), (4, -5), (3, -8), (1, -8), (0, -6)]
-    if c == 'h': return [(0, -5), (0, 7), (0, -1), (2, 2.5), (4, 2), (4, -5), (6, -4)]
-    if c == 'i': return [(0, 2), (0, -5), (2, -4)]
-    if c == 'j': return [(1, 2), (1, -7), (0, -8), (-1, -7)]
-    if c == 'k': return [(0, -5), (0, 7), (0, -2), (3, 2), (0, -1), (4, -5), (6, -4)]
-    if c == 'l': return [(0, -5), (0, 7), (1, 7.5), (1, -4), (3, -4)]
-    if c == 'm': return [(0, -5), (0, 2), (1, 2.5), (2, -5), (2, 1), (3, 2.5), (4, -5), (4, 1), (5, 2.5), (6, -5), (8, -4)]
-    if c == 'n': return [(0, -5), (0, 2), (1, 2.5), (3, 2.5), (4, -5), (6, -4)]
-    if c == 'o': return [(2, 2.5), (0, 0), (0, -3), (2, -5), (4, -3), (4, 0), (2, 2.5), (5, 2)]
-    if c == 'p': return [(0, 2), (0, -8), (0, 0), (2, 2.5), (4, 1), (3, -3), (0, -3)]
-    if c == 'q': return [(4, -5), (2, -5), (0, -3), (0, 0), (2, 2.5), (4, 0), (4, -8), (6, -6)]
-    if c == 'r': return [(0, -5), (0, 2), (0, 1), (2, 2.5), (4, 2)]
-    if c == 's': return [(4, 2), (2, 2.5), (0, 1), (3, -1), (4, -3), (2, -5), (0, -4)]
-    if c == 't': return [(1, 6), (1, -5), (3, -4)]
-    if c == 'u': return [(0, 2), (0, -3), (2, -5), (4, -3), (4, 2), (4, -5), (6, -4)]
-    if c == 'v': return [(0, 2), (2, -5), (4, 2), (5, 2)]
-    if c == 'w': return [(0, 2), (1, -5), (2, 0), (3, -5), (4, 2), (5, 2)]
-    if c == 'x': return [(0, 2), (4, -5)]
-    if c == 'y': return [(0, 2), (0, -3), (2, -5), (4, -3), (4, 2), (4, -5), (3, -8), (1, -8)]
-    if c == 'z': return [(0, 2), (4, 2), (0, -5), (4, -5)]
-    return [(0, -4), (1, 1), (2, -4)]
+# Character glyphs normalized relative to baseline (y=0)
+CHAR_GLYPHS = {
+    'a': [(0,2), (3,5.5), (5,5), (2,3), (1,1), (3,0), (5,0), (5,5), (5,0), (7,2)],
+    'b': [(0,2), (1,14), (2,14), (1,2), (1,0), (4,0), (5.5,3), (4,6), (1,5), (5.5,5)],
+    'c': [(0,2), (3,5.5), (2,5), (0,3), (1,0), (4,0), (6,2)],
+    'd': [(0,2), (3,5.5), (5,5), (2,3), (1,1), (3,0), (5,0), (5,14), (5,0), (7,2)],
+    'e': [(0,2), (4,3), (3,5.5), (1,5), (0,3), (1,0), (4,0), (6,2)],
+    'f': [(0,2), (2,14), (3,14), (2,0), (2,-7), (3,-7), (2,2), (5,2)],
+    'g': [(0,2), (3,5.5), (5,5), (2,3), (1,1), (3,0), (5,0), (5,-7), (2,-7), (4,-2), (7,2)],
+    'h': [(0,2), (1,14), (1,0), (1,3), (3,5.5), (5,5), (5,0), (7,2)],
+    'i': [(0,2), (2,5), (2,0), (4,2)],
+    'j': [(0,2), (2,5), (2,-7), (0,-7), (2,-2), (5,2)],
+    'k': [(0,2), (1,14), (1,0), (1,3), (4,5.5), (1,2), (4,0), (6,2)],
+    'l': [(0,2), (1,14), (2,14), (1,2), (2,0), (4,2)],
+    'm': [(0,2), (1,5), (1,0), (1,4), (3,5.5), (3,0), (3,4), (5,5.5), (5,0), (7,2)],
+    'n': [(0,2), (1,5), (1,0), (1,4), (4,5.5), (4,0), (6,2)],
+    'o': [(0,2), (2,5.5), (5,5), (5,1), (3,0), (1,1.5), (2,5), (5.5,5)],
+    'p': [(0,2), (1,5), (1,-7), (1,2), (4,5.5), (5,3), (3,0), (1,1), (5,0), (7,2)],
+    'q': [(0,2), (3,5.5), (5,5), (2,3), (1,1), (3,0), (5,0), (5,-7), (6,-4), (5,0), (7,2)],
+    'r': [(0,2), (1,5), (2,5.5), (4,5), (4,0), (6,2)],
+    's': [(0,2), (3,5.5), (2,4), (4,2), (3,0), (1,0), (4,0), (6,2)],
+    't': [(0,2), (2,12), (2,0), (4,2)],
+    'u': [(0,2), (1,5), (1,0), (3,0), (4,2), (4,5), (4,0), (6,2)],
+    'v': [(0,2), (1,5), (3,0), (5,5), (7,5)],
+    'w': [(0,2), (1,5), (2,0), (3,4), (4,0), (5,5), (7,5)],
+    'x': [(0,5), (4,0), (2,2.5), (0,0), (4,5), (6,2)],
+    'y': [(0,2), (1,5), (1,1), (3,0), (4,2), (4,5), (4,-7), (1,-7), (3,-2), (6,2)],
+    'z': [(0,5), (4,5), (2,2), (0,0), (2,-5), (0,-5), (2,0), (5,2)],
+}
 
-def spline_interp(pts, n_per_seg=3):
+def catmull_rom_spline(pts, n_per_seg=3):
     if len(pts) < 2: return pts
+    p = [pts[0]] + list(pts) + [pts[-1]]
     res = []
-    for i in range(len(pts) - 1):
-        p0 = pts[max(0, i - 1)]
-        p1 = pts[i]
-        p2 = pts[i + 1]
-        p3 = pts[min(len(pts) - 1, i + 2)]
+    for i in range(1, len(p) - 2):
+        p0, p1, p2, p3 = p[i-1], p[i], p[i+1], p[i+2]
         for t in np.linspace(0, 1, n_per_seg, endpoint=False):
-            t2 = t * t
-            t3 = t2 * t
-            x = 0.5 * ((2 * p1[0]) + (-p0[0] + p2[0]) * t + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3)
-            y = 0.5 * ((2 * p1[1]) + (-p0[1] + p2[1]) * t + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3)
+            t2, t3 = t * t, t * t * t
+            x = 0.5 * ((2*p1[0]) + (-p0[0] + p2[0])*t + (2*p0[0] - 5*p1[0] + 4*p2[0] - p3[0])*t2 + (-p0[0] + 3*p1[0] - 3*p2[0] + p3[0])*t3)
+            y = 0.5 * ((2*p1[1]) + (-p0[1] + p2[1])*t + (2*p0[1] - 5*p1[1] + 4*p2[1] - p3[1])*t2 + (-p0[1] + 3*p1[1] - 3*p2[1] + p3[1])*t3)
             res.append((float(x), float(y)))
     res.append(pts[-1])
     return res
 
-def generate_kinematic_trajectory(text, style_vec=None, bias=1.0):
-    slant = 0.22
-    scale = 1.0
-    jitter = 0.08
+def generate_kinematic_trajectory(text, writer_id="a01-000", style_vec=None, bias=1.0):
+    cluster_id = 0
+    if writer_id in STATE.get("writer_to_cluster", {}):
+        cluster_id = STATE["writer_to_cluster"][writer_id]
+        
+    ARCHETYPE_PROFILES = [
+        {"slant": 0.44, "width": 0.85, "asc_scale": 0.90, "jitter": 0.03, "spline_n": 3},
+        {"slant": 0.02, "width": 1.22, "asc_scale": 1.10, "jitter": 0.02, "spline_n": 4},
+        {"slant": 0.16, "width": 0.78, "asc_scale": 1.05, "jitter": 0.12, "spline_n": 2},
+        {"slant": 0.54, "width": 1.35, "asc_scale": 1.25, "jitter": 0.05, "spline_n": 4},
+        {"slant": 0.22, "width": 1.05, "asc_scale": 1.00, "jitter": 0.04, "spline_n": 3},
+    ]
+    
+    prof = ARCHETYPE_PROFILES[cluster_id % len(ARCHETYPE_PROFILES)]
+    slant = prof["slant"]
+    width_scale = prof["width"]
+    asc_scale = prof["asc_scale"]
+    jitter = prof["jitter"] * bias
+    spline_n = prof["spline_n"]
+    
     if style_vec is not None:
         try:
-            slant = float(style_vec[142].item() if hasattr(style_vec[142], 'item') else style_vec[142]) * 0.35
-            scale = 0.9 + 0.2 * float(style_vec[89].item() if hasattr(style_vec[89], 'item') else style_vec[89])
-            jitter = 0.05 + 0.05 * abs(float(style_vec[9].item() if hasattr(style_vec[9], 'item') else style_vec[9]))
+            dim142 = float(style_vec[142].item() if hasattr(style_vec[142], 'item') else style_vec[142])
+            slant = float(np.clip(slant + dim142 * 2.5, -0.20, 0.65))
+            dim89 = float(style_vec[89].item() if hasattr(style_vec[89], 'item') else style_vec[89])
+            asc_scale = float(np.clip(asc_scale + dim89 * 1.5, 0.80, 1.40))
+            dim210 = float(style_vec[210].item() if hasattr(style_vec[210], 'item') else style_vec[210])
+            width_scale = float(np.clip(width_scale + dim210 * 2.0, 0.70, 1.50))
+            dim9 = float(style_vec[9].item() if hasattr(style_vec[9], 'item') else style_vec[9])
+            jitter = float(np.clip(jitter + abs(dim9) * 0.4 * bias, 0.01, 0.25))
         except Exception:
             pass
 
+    cur_x = 12.0
+    baseline_y = 0.0
+    raw_coords = []
     points = []
-    cur_x = 0.0
-    
-    for ch in text:
-        if ch == ' ':
-            cur_x += 16.0 * scale
-            points.append([16.0 * scale, 0.0, 1])
-            continue
-            
-        wpts = get_char_waypoints(ch)
-        char_pts = []
-        for wx, wy in wpts:
-            px = cur_x + wx * scale + slant * (wy + 5.0) + np.random.randn() * jitter
-            py = wy * scale + np.random.randn() * jitter
-            char_pts.append((px, py))
-            
-        interpolated = spline_interp(char_pts, n_per_seg=3)
-        for i in range(1, len(interpolated)):
-            dx = interpolated[i][0] - interpolated[i-1][0]
-            dy = interpolated[i][1] - interpolated[i-1][1]
-            points.append([dx, dy, 0])
-            
-        cur_x += (max(p[0] for p in wpts) + 3.0) * scale
-        points.append([2.0, 0.0, 0])
+
+    words = text.strip().split()
+    if not words:
+        words = ["Handwriting"]
         
-    points.append([0.0, 0.0, 2])
-    return points
+    for word_idx, word in enumerate(words):
+        if word_idx > 0:
+            cur_x += 16.0 * width_scale
+            
+        word_waypoints = []
+        for ch in word.lower():
+            glyph = CHAR_GLYPHS.get(ch, [(0,2), (2,5), (2,0), (4,2)])
+            for gx, gy in glyph:
+                y_mod = gy * asc_scale if gy > 6 else gy
+                px = cur_x + gx * width_scale + slant * y_mod + np.random.randn() * jitter
+                py = baseline_y + y_mod + np.random.randn() * jitter
+                word_waypoints.append((px, py))
+            cur_x += (max(pt[0] for pt in glyph) + 1.2) * width_scale
+
+        smooth_word = catmull_rom_spline(word_waypoints, n_per_seg=spline_n)
+        for i, pt in enumerate(smooth_word):
+            is_lift = 1.0 if (i == 0 and len(raw_coords) > 0) else 0.0
+            if len(raw_coords) == 0:
+                points.append([0.0, 0.0, 0.0])
+            else:
+                last_pt = raw_coords[-1]
+                points.append([float(pt[0] - last_pt[0]), float(pt[1] - last_pt[1]), is_lift])
+            raw_coords.append([float(pt[0]), float(pt[1])])
+
+    return raw_coords, points
 
 @app.post("/api/synthesize")
 def synthesize(req: SynthesizeRequest):
@@ -437,29 +463,27 @@ def synthesize(req: SynthesizeRequest):
     style_vec = style_bank.get(writer_id)
     start_time = time.time()
     
-    # Generate high-fidelity kinematic trajectory conditioned on author style embedding
-    points = generate_kinematic_trajectory(req.text, style_vec=style_vec, bias=req.temperature_bias)
+    raw_coords, points = generate_kinematic_trajectory(req.text, writer_id=writer_id, style_vec=style_vec, bias=req.temperature_bias)
     
     latency = time.time() - start_time
-    pts_arr = np.array(points)
-    raw_pos = np.cumsum(pts_arr[:, :2], axis=0) if len(pts_arr) > 0 else np.zeros((0, 2))
     
     kalman_coords = []
-    if req.apply_kalman and len(pts_arr) > 1:
-        kalman_smoothed = run_kalman(pts_arr[:, :2])
-        kalman_coords = [[float(p[0]), float(p[1])] for p in kalman_smoothed]
+    if req.apply_kalman and len(raw_coords) > 1:
+        kalman_coords = run_kalman_pos(raw_coords)
     else:
-        kalman_coords = [[float(p[0]), float(p[1])] for p in raw_pos]
+        kalman_coords = [[float(p[0]), float(p[1])] for p in raw_coords]
+        
+    pen_lifts_count = int(sum(1 for p in points if p[2] == 1.0))
         
     return {
         "text": req.text,
         "writer_id": writer_id,
         "points": points,
-        "raw_trajectory": [[float(p[0]), float(p[1])] for p in raw_pos],
+        "raw_trajectory": raw_coords,
         "kalman_trajectory": kalman_coords,
         "stats": {
-            "total_points": len(points),
-            "pen_lifts": int(np.sum(pts_arr[:, 2] == 1)) if len(pts_arr) > 0 else 0,
+            "total_points": len(raw_coords),
+            "pen_lifts": pen_lifts_count,
             "latency_ms": round(latency * 1000, 1)
         }
     }
@@ -474,15 +498,22 @@ def get_unit3_pca():
     variance_ratio = [float(v) for v in pca.explained_variance_ratio_]
     cum_variance = [float(v) for v in np.cumsum(pca.explained_variance_ratio_)]
     
+    x_span = max(abs(float(X_pca[:, 0].min())), abs(float(X_pca[:, 0].max()))) or 1.0
+    y_span = max(abs(float(X_pca[:, 1].min())), abs(float(X_pca[:, 1].max()))) or 1.0
+    
     # Scatter samples (subsample 300 points for quick reactive rendering)
     sub_indices = np.linspace(0, len(writer_ids)-1, 300, dtype=int)
     scatter_pts = []
     for idx in sub_indices:
+        norm_x = (float(X_pca[idx, 0]) / x_span) * 2.8
+        norm_y = (float(X_pca[idx, 1]) / y_span) * 2.8
         scatter_pts.append({
             "id": writer_ids[idx],
-            "x": float(X_pca[idx, 0]),
-            "y": float(X_pca[idx, 1]),
-            "z": float(X_pca[idx, 2]),
+            "x": norm_x,
+            "y": norm_y,
+            "raw_x": round(float(X_pca[idx, 0]), 4),
+            "raw_y": round(float(X_pca[idx, 1]), 4),
+            "z": round(float(X_pca[idx, 2]), 4),
             "cluster": int(labels[idx])
         })
         
@@ -667,15 +698,24 @@ def get_real_sample(index: int = 0):
         
     raw_pos = np.cumsum(strokes_np[:, :2], axis=0)
     
+    # In IAM dataset, p1 (index 2) is pen-down inking, p2 (index 3) is pen-up airborne lift
+    pen_up_mask = (strokes_np[:, 3] == 1.0) if strokes_np.shape[1] > 3 else (strokes_np[:, 2] == 0.0)
+    pen_lifts_count = int(np.sum(pen_up_mask))
+    
+    formatted_points = [
+        [float(p[0]), float(p[1]), 1.0 if ((len(p) > 3 and p[3] == 1.0) or (len(p) > 2 and p[2] == 0.0)) else 0.0]
+        for p in strokes_np
+    ]
+    
     return {
         "index": idx,
         "writer_id": item['writer_id'],
         "text": item.get('text', 'IAM handwriting specimen'),
         "total_points": len(strokes_np),
         "trajectory": [[float(p[0]), float(p[1])] for p in raw_pos],
-        "strokes": [[float(p[0]), float(p[1]), float(p[2]) if len(p) > 2 else 0.0] for p in strokes_np],
-        "points": [[float(p[0]), float(p[1]), float(p[2]) if len(p) > 2 else 0.0] for p in strokes_np],
-        "pen_lifts": int(np.sum(strokes_np[:, 2] == 1)) if strokes_np.shape[1] > 2 else 2
+        "strokes": formatted_points,
+        "points": formatted_points,
+        "pen_lifts": pen_lifts_count
     }
 
 if __name__ == "__main__":
